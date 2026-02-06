@@ -9,7 +9,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Music Stories Generator",
+  title: "Spotme",
   description: "Generate Instagram Stories from your Spotify stats.",
   manifest: "/manifest.json",
   themeColor: "#0b0d12",

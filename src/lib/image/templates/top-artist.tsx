@@ -68,6 +68,7 @@ export function TopArtistTemplate({
         >
           <div
             style={{
+              display: "flex",
               width: "280px",
               height: "280px",
               borderRadius: "48px",

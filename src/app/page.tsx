@@ -6,7 +6,7 @@ export default function HomePage() {
       <section className="mx-auto flex w-full max-w-4xl flex-col gap-8">
         <div className="space-y-4">
           <p className="text-xs uppercase tracking-[0.4em] text-white/50">
-            Music Stories Generator
+            Spotme
           </p>
           <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
             Turn your Spotify stats into Instagram-ready stories.
