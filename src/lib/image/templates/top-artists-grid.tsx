@@ -9,6 +9,9 @@ interface TopArtistsGridTemplateProps {
 }
 
 const FALLBACK_TILE_COUNT = 12;
+const TILE_SIZE = 260;
+const TILE_GAP = 16;
+const EXTRA_ROW_GAP = TILE_SIZE + TILE_GAP;
 
 export function TopArtistsGridTemplate({
   periodLabel,
@@ -49,13 +52,13 @@ export function TopArtistsGridTemplate({
         </p>
         <h1
           style={{
-            fontSize: "86px",
+            fontSize: "72px",
             lineHeight: 0.98,
             margin: 0,
             fontWeight: 700,
           }}
         >
-          Your top artists
+          Top artists
         </h1>
       </header>
 
@@ -63,26 +66,28 @@ export function TopArtistsGridTemplate({
         style={{
           display: "flex",
           flexWrap: "wrap",
-          gap: "20px",
-          width: "840px",
+          gap: `${TILE_GAP}px`,
+          width: `${TILE_SIZE * 3 + TILE_GAP * 2}px`,
+          margin: "0 auto",
         }}
       >
         {tiles.map((artist, index) => (
           <div
             key={`${artist.name}-${index}`}
             style={{
-              width: "260px",
+              width: `${TILE_SIZE}px`,
               display: "flex",
               flexDirection: "column",
               gap: "16px",
+              marginTop: index >= 6 && index <= 8 ? `${EXTRA_ROW_GAP}px` : 0,
             }}
           >
             <div
               style={{
-                width: "260px",
-                height: "260px",
+                width: `${TILE_SIZE}px`,
+                height: `${TILE_SIZE}px`,
                 display: "flex",
-                borderRadius: "40px",
+                borderRadius: 0,
                 overflow: "hidden",
                 backgroundColor: "rgba(255,255,255,0.08)",
               }}
@@ -91,8 +96,8 @@ export function TopArtistsGridTemplate({
                 <img
                   src={artist.imageUrl}
                   alt={artist.name}
-                  width={260}
-                  height={260}
+                  width={TILE_SIZE}
+                  height={TILE_SIZE}
                   style={{ objectFit: "cover" }}
                 />
               ) : (
