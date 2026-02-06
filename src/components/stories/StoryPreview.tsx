@@ -3,12 +3,13 @@
 import { useMemo, useState } from "react";
 
 const PERIODS = [
-  { value: "short_term", label: "Last 4 weeks" },
+  { value: "short_term", label: "This month" },
   { value: "medium_term", label: "Last 6 months" },
   { value: "long_term", label: "All time" },
 ] as const;
 
 const TEMPLATES = [
+  { value: "top-artists-grid", label: "Top Artists Grid" },
   { value: "top-artist", label: "Top Artist" },
 ] as const;
 
@@ -18,7 +19,7 @@ export default function StoryPreview() {
   );
   const [template, setTemplate] = useState<
     (typeof TEMPLATES)[number]["value"]
-  >("top-artist");
+  >("top-artists-grid");
   const [imageError, setImageError] = useState(false);
 
   const imageUrl = useMemo(() => {

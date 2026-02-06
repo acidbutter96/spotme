@@ -17,12 +17,12 @@ const ALLOWED_TIME_RANGES: SpotifyTimeRange[] = [
 ];
 
 const PERIOD_LABELS: Record<SpotifyTimeRange, string> = {
-  short_term: "Last 4 Weeks",
+  short_term: "This Month",
   medium_term: "Last 6 Months",
   long_term: "All Time",
 };
 
-const ALLOWED_TEMPLATES: StoryTemplate[] = ["top-artist"];
+const ALLOWED_TEMPLATES: StoryTemplate[] = ["top-artist", "top-artists-grid"];
 
 function isSpotifyTimeRange(value: string | null): value is SpotifyTimeRange {
   return (
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
       : "short_term";
     const template: StoryTemplate = isStoryTemplate(templateParam)
       ? templateParam
-      : "top-artist";
+      : "top-artists-grid";
 
     const topArtists = await getTopArtists(period, accessToken);
     const normalizedArtists = topArtists.items.map(normalizeArtist);
@@ -66,6 +66,10 @@ export async function GET(req: NextRequest) {
       topArtist: topArtist
         ? { name: topArtist.name, imageUrl: topArtist.imageUrl }
         : null,
+      topArtists: normalizedArtists.slice(0, 12).map((artist) => ({
+        name: artist.name,
+        imageUrl: artist.imageUrl,
+      })),
       topGenres,
     });
 
