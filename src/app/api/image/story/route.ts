@@ -24,6 +24,19 @@ const PERIOD_LABELS: Record<SpotifyTimeRange, string> = {
 
 const ALLOWED_TEMPLATES: StoryTemplate[] = ["top-artist"];
 
+function isSpotifyTimeRange(value: string | null): value is SpotifyTimeRange {
+  return (
+    value !== null &&
+    (ALLOWED_TIME_RANGES as readonly string[]).includes(value)
+  );
+}
+
+function isStoryTemplate(value: string | null): value is StoryTemplate {
+  return (
+    value !== null && (ALLOWED_TEMPLATES as readonly string[]).includes(value)
+  );
+}
+
 export async function GET(req: NextRequest) {
   try {
     const accessToken = await getServerAccessToken(req);
@@ -32,14 +45,14 @@ export async function GET(req: NextRequest) {
     }
 
     const params = req.nextUrl.searchParams;
-    const periodParam = params.get("period") as SpotifyTimeRange | null;
-    const templateParam = params.get("template") as StoryTemplate | null;
+    const periodParam = params.get("period");
+    const templateParam = params.get("template");
 
-    const period = ALLOWED_TIME_RANGES.includes(periodParam ?? "")
-      ? (periodParam as SpotifyTimeRange)
+    const period: SpotifyTimeRange = isSpotifyTimeRange(periodParam)
+      ? periodParam
       : "short_term";
-    const template = ALLOWED_TEMPLATES.includes(templateParam ?? "")
-      ? (templateParam as StoryTemplate)
+    const template: StoryTemplate = isStoryTemplate(templateParam)
+      ? templateParam
       : "top-artist";
 
     const topArtists = await getTopArtists(period, accessToken);

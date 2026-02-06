@@ -11,6 +11,13 @@ const ALLOWED_TIME_RANGES: SpotifyTimeRange[] = [
   "long_term",
 ];
 
+function isSpotifyTimeRange(value: string | null): value is SpotifyTimeRange {
+  return (
+    value !== null &&
+    (ALLOWED_TIME_RANGES as readonly string[]).includes(value)
+  );
+}
+
 export async function GET(req: NextRequest) {
   try {
     const accessToken = await getServerAccessToken(req);
@@ -18,11 +25,9 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const timeRange = req.nextUrl.searchParams.get("timeRange") as
-      | SpotifyTimeRange
-      | null;
-    const period = ALLOWED_TIME_RANGES.includes(timeRange ?? "")
-      ? (timeRange as SpotifyTimeRange)
+    const timeRange = req.nextUrl.searchParams.get("timeRange");
+    const period: SpotifyTimeRange = isSpotifyTimeRange(timeRange)
+      ? timeRange
       : "short_term";
 
     const data = await getTopTracks(period, accessToken);
