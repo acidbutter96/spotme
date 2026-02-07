@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { ArtistPlaceholder } from "@/lib/image/placeholders/artist";
 
 interface TopArtistsGridTemplateProps {
   periodLabel: string;
@@ -101,20 +102,7 @@ export function TopArtistsGridTemplate({
                   style={{ objectFit: "cover" }}
                 />
               ) : (
-                <div
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "24px",
-                    color: "rgba(255,255,255,0.5)",
-                    textAlign: "center",
-                  }}
-                >
-                  No Image
-                </div>
+                <ArtistPlaceholder />
               )}
             </div>
             <p

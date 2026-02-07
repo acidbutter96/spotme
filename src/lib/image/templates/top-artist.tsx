@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { ArtistPlaceholder } from "@/lib/image/placeholders/artist";
 
 interface TopArtistTemplateProps {
   periodLabel: string;
@@ -85,19 +86,7 @@ export function TopArtistTemplate({
                 style={{ objectFit: "cover" }}
               />
             ) : (
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "32px",
-                  color: "rgba(255,255,255,0.5)",
-                }}
-              >
-                No Image
-              </div>
+              <ArtistPlaceholder />
             )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>

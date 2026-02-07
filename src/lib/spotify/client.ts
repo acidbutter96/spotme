@@ -40,6 +40,30 @@ export async function getTopTracks(
   );
 }
 
+interface SpotifySearchArtistsResponse {
+  artists: {
+    items: SpotifyArtist[];
+  };
+}
+
+export async function searchArtistImage(
+  name: string,
+  accessToken: string,
+): Promise<string | null> {
+  const params = new URLSearchParams({
+    type: "artist",
+    limit: "1",
+    q: name,
+  });
+  const response = await spotifyFetch<SpotifySearchArtistsResponse>(
+    accessToken,
+    `/search?${params.toString()}`,
+  );
+
+  const artist = response.artists.items[0];
+  return artist?.images?.[0]?.url ?? null;
+}
+
 export interface SpotifyTopArtistsResponse {
   items: SpotifyArtist[];
 }
