@@ -2,31 +2,25 @@ import Link from "next/link";
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen px-6 py-12">
-      <section className="mx-auto flex w-full max-w-4xl flex-col gap-8">
+    <main className="py-12">
+      <section className="app-container flex flex-col gap-8">
         <div className="space-y-4">
-          <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+          <p className="text-xs uppercase tracking-[0.4em] text-foreground/50">
             Spotme
           </p>
-          <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
+          <h1 className="bg-gradient-to-r from-neon-pink to-neon-green bg-clip-text text-4xl font-semibold leading-tight text-transparent sm:text-5xl">
             Turn your music stats into Instagram-ready stories.
           </h1>
-          <p className="max-w-2xl text-lg text-white/70">
+          <p className="max-w-2xl text-lg text-foreground/70">
             For now, we support Last.fm usernames only (Spotify sign-in is
             temporarily disabled).
           </p>
         </div>
         <div className="flex flex-wrap gap-4">
-          <Link
-            href="/login"
-            className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:opacity-90"
-          >
+          <Link href="/login" className="btn-primary">
             Continue with Last.fm
           </Link>
-          <Link
-            href="/stories"
-            className="rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white/80 transition hover:border-white/60"
-          >
+          <Link href="/stories" className="btn-secondary">
             View Stories
           </Link>
         </div>
