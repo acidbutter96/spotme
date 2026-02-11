@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import BackgroundClient from "@/components/BackgroundClient";
 import Footer from "@/components/Footer";
-import "./globals.css";
 import "./global.scss";
 import styles from "./styles.module.scss";
 
