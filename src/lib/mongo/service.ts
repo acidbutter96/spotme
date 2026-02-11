@@ -60,9 +60,9 @@ export interface SaveArtistsWithoutCoverOptions {
 }
 
 function getMongoUri(): string {
-  const mongoUri = process.env.MONGO_URI;
+  const mongoUri = process.env.MONGODB_URI;
   if (!mongoUri) {
-    throw new Error("Missing MONGO_URI environment variable");
+    throw new Error("Missing MONGODB_URI environment variable");
   }
   return mongoUri;
 }
