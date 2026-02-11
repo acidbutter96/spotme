@@ -13,7 +13,12 @@ export default function HomePage() {
             Turn your music stats into Instagram-ready stories.
           </h1>
           <p className={styles.homeDescription}>
-            For now, we support Last.fm usernames only (Spotify sign-in is
+            Spotme turns your listening history into shareable story images.
+            Choose a source and time range, preview the design, and download a
+            high-resolution PNG in one click.
+          </p>
+          <p className={styles.homeDescription}>
+            You can generate stories using a public Last.fm username (Spotify sign-in is
             temporarily disabled).
           </p>
         </div>

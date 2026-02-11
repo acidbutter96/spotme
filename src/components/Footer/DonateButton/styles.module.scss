@@ -1,0 +1,16 @@
+.container {
+  display: flex;
+  align-items: center;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+}
+
+/* PayPal SDK injects an <img> inside the container. */
+.button :global(img) {
+  display: block;
+  height: 2.25rem;
+  width: auto;
+}
