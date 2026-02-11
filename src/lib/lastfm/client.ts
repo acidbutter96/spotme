@@ -24,11 +24,22 @@ interface LastFmWeeklyArtistChartResponse {
   };
 }
 
+interface LastFmWeeklyChartListResponse {
+  weeklychartlist?: {
+    chart?: LastFmWeeklyChartListEntry[] | LastFmWeeklyChartListEntry;
+  };
+}
+
 interface LastFmWeeklyArtistChartArtist {
   name?: string;
   "#text"?: string;
   mbid?: string;
   playcount?: string | number;
+}
+
+interface LastFmWeeklyChartListEntry {
+  from?: string;
+  to?: string;
 }
 
 interface LastFmArtistImage {
@@ -144,6 +155,38 @@ export async function getTopArtistsByDateRange(
     .filter((artist): artist is LastFmArtist => Boolean(artist));
 
   return normalized;
+}
+
+export async function getAvailableChartYears(
+  username: string,
+): Promise<number[]> {
+  const response = await lastFmFetch<LastFmWeeklyChartListResponse>({
+    method: "user.getweeklychartlist",
+    user: username,
+    autocorrect: "1",
+  });
+
+  const chart = response.weeklychartlist?.chart;
+  if (!chart) {
+    return [];
+  }
+
+  const entries = Array.isArray(chart) ? chart : [chart];
+  const years = new Set<number>();
+
+  for (const entry of entries) {
+    const fromSeconds = Number(entry.from);
+    if (Number.isFinite(fromSeconds) && fromSeconds > 0) {
+      years.add(new Date(fromSeconds * 1000).getUTCFullYear());
+    }
+
+    const toSeconds = Number(entry.to);
+    if (Number.isFinite(toSeconds) && toSeconds > 0) {
+      years.add(new Date(toSeconds * 1000).getUTCFullYear());
+    }
+  }
+
+  return Array.from(years).sort((a, b) => b - a);
 }
 
 export async function getArtistInfo(input: {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const PERIODS = [
   { value: "week", label: "This week" },
@@ -27,7 +27,7 @@ const SOURCES = [
 const SPOTIFY_PERIODS = new Set(["short_term", "medium_term", "long_term"]);
 const CURRENT_YEAR = new Date().getFullYear();
 const FIRST_LASTFM_YEAR = 2002;
-const YEAR_OPTIONS = Array.from(
+const DEFAULT_YEAR_OPTIONS = Array.from(
   { length: CURRENT_YEAR - FIRST_LASTFM_YEAR + 1 },
   (_, index) => CURRENT_YEAR - index,
 );
@@ -56,9 +56,70 @@ export default function StoryPreview({
   const [imageError, setImageError] = useState(false);
   const [lastFmUsername, setLastFmUsername] = useState(initialLastFmUsername);
   const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
+  const [availableYears, setAvailableYears] = useState<number[]>(
+    DEFAULT_YEAR_OPTIONS,
+  );
+  const [isLoadingAvailableYears, setIsLoadingAvailableYears] = useState(false);
 
   const trimmedUsername = lastFmUsername.trim();
+  const yearOptions =
+    source === "lastfm" ? availableYears : DEFAULT_YEAR_OPTIONS;
   const canGenerate = source !== "lastfm" || trimmedUsername.length > 0;
+
+  useEffect(() => {
+    if (source !== "lastfm" || !trimmedUsername) {
+      setAvailableYears(DEFAULT_YEAR_OPTIONS);
+      setIsLoadingAvailableYears(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setIsLoadingAvailableYears(true);
+
+    void fetch(`/api/lastfm/years?username=${encodeURIComponent(trimmedUsername)}`, {
+      signal: controller.signal,
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Failed to load available years");
+        }
+
+        const body = (await response.json()) as { years?: unknown };
+        if (!Array.isArray(body.years)) {
+          setAvailableYears(DEFAULT_YEAR_OPTIONS);
+          return;
+        }
+
+        const years = body.years
+          .filter((value): value is number => Number.isInteger(value))
+          .sort((a, b) => b - a);
+        setAvailableYears(years.length > 0 ? years : DEFAULT_YEAR_OPTIONS);
+      })
+      .catch((error: unknown) => {
+        if ((error as { name?: string })?.name === "AbortError") {
+          return;
+        }
+        setAvailableYears(DEFAULT_YEAR_OPTIONS);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoadingAvailableYears(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [source, trimmedUsername]);
+
+  useEffect(() => {
+    if (yearOptions.length === 0) {
+      return;
+    }
+
+    if (!yearOptions.includes(selectedYear)) {
+      setSelectedYear(yearOptions[0]);
+    }
+  }, [yearOptions, selectedYear]);
 
   const imageUrl = useMemo(() => {
     const params = new URLSearchParams({
@@ -199,12 +260,17 @@ export default function StoryPreview({
                   }}
                   className="app-input"
                 >
-                  {YEAR_OPTIONS.map((year) => (
+                  {yearOptions.map((year) => (
                     <option key={year} value={year}>
                       {year}
                     </option>
                   ))}
                 </select>
+                {source === "lastfm" && isLoadingAvailableYears ? (
+                  <p className="text-xs text-foreground/40">
+                    Loading available years from Last.fm...
+                  </p>
+                ) : null}
               </div>
             ) : null}
           </div>
