@@ -94,7 +94,7 @@ export default function StoryPreview({
         const years = body.years
           .filter((value): value is number => Number.isInteger(value))
           .sort((a, b) => b - a);
-        setAvailableYears(years.length > 0 ? years : DEFAULT_YEAR_OPTIONS);
+        setAvailableYears(years);
       })
       .catch((error: unknown) => {
         if ((error as { name?: string })?.name === "AbortError") {
@@ -259,16 +259,29 @@ export default function StoryPreview({
                     setImageError(false);
                   }}
                   className="app-input"
+                  disabled={
+                    source === "lastfm" &&
+                    !isLoadingAvailableYears &&
+                    yearOptions.length === 0
+                  }
                 >
-                  {yearOptions.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
+                  {yearOptions.length === 0 ? (
+                    <option value={selectedYear}>No years available</option>
+                  ) : (
+                    yearOptions.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))
+                  )}
                 </select>
                 {source === "lastfm" && isLoadingAvailableYears ? (
                   <p className="text-xs text-foreground/40">
                     Loading available years from Last.fm...
+                  </p>
+                ) : source === "lastfm" && yearOptions.length === 0 ? (
+                  <p className="text-xs text-foreground/40">
+                    No scrobble years found for this Last.fm user.
                   </p>
                 ) : null}
               </div>
