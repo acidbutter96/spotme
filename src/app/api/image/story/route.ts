@@ -5,7 +5,9 @@ import {
   getBestArtistImage,
   getArtistInfo,
   getTopArtists as getLastFmTopArtists,
+  getTopArtistsByDateRange,
   LastFmApiError,
+  type LastFmArtist,
   type LastFmPeriod,
 } from "@/lib/lastfm/client";
 import { getAudioDbArtistImage } from "@/lib/audiodb/client";
@@ -29,7 +31,6 @@ type StoryPeriod =
   | "week"
   | "15days"
   | "30days"
-  | "semester"
   | "year"
   | "last_year"
   | "specific_year";
@@ -39,7 +40,6 @@ const ALLOWED_PERIODS: StoryPeriod[] = [
   "15days",
   "30days",
   "short_term",
-  "semester",
   "medium_term",
   "year",
   "last_year",
@@ -52,7 +52,6 @@ const PERIOD_LABELS: Record<StoryPeriod, string> = {
   "15days": "Last 15 Days",
   "30days": "Last 30 Days",
   short_term: "This Month",
-  semester: "Semester",
   medium_term: "Last 6 Months",
   year: "This Year",
   last_year: "Last Year",
@@ -68,7 +67,6 @@ const LASTFM_PERIODS: Record<StoryPeriod, LastFmPeriod> = {
   "15days": "1month",
   "30days": "1month",
   short_term: "1month",
-  semester: "6month",
   medium_term: "6month",
   year: "12month",
   last_year: "12month",
@@ -77,6 +75,120 @@ const LASTFM_PERIODS: Record<StoryPeriod, LastFmPeriod> = {
 };
 
 const LASTFM_IMAGE_TILE_LIMIT = 12;
+const LASTFM_FIRST_YEAR = 2002;
+
+interface LastFmDateRange {
+  from: number;
+  to: number;
+}
+
+function toUnixSeconds(date: Date): number {
+  return Math.floor(date.getTime() / 1000);
+}
+
+function getStartOfUtcWeek(date: Date): Date {
+  const start = new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
+  const day = start.getUTCDay();
+  const daysSinceMonday = (day + 6) % 7;
+  start.setUTCDate(start.getUTCDate() - daysSinceMonday);
+  return start;
+}
+
+function getStartOfUtcMonth(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
+}
+
+function getStartOfUtcYear(year: number): Date {
+  return new Date(Date.UTC(year, 0, 1));
+}
+
+function subtractDays(date: Date, days: number): Date {
+  return new Date(date.getTime() - days * 24 * 60 * 60 * 1000);
+}
+
+function subtractMonthsUtc(date: Date, months: number): Date {
+  return new Date(
+    Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth() - months,
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds(),
+    ),
+  );
+}
+
+function getUtcYearRange(year: number, now: Date): LastFmDateRange {
+  const start = getStartOfUtcYear(year);
+  if (year === now.getUTCFullYear()) {
+    return { from: toUnixSeconds(start), to: toUnixSeconds(now) };
+  }
+
+  const nextYear = getStartOfUtcYear(year + 1);
+  return { from: toUnixSeconds(start), to: toUnixSeconds(nextYear) - 1 };
+}
+
+function getLastFmDateRangeForPeriod(
+  period: StoryPeriod,
+  selectedYear: number | null,
+  now = new Date(),
+): LastFmDateRange | null {
+  const nowSeconds = toUnixSeconds(now);
+
+  switch (period) {
+    case "week":
+      return {
+        from: toUnixSeconds(getStartOfUtcWeek(now)),
+        to: nowSeconds,
+      };
+    case "15days":
+      return {
+        from: toUnixSeconds(subtractDays(now, 15)),
+        to: nowSeconds,
+      };
+    case "30days":
+      return {
+        from: toUnixSeconds(subtractDays(now, 30)),
+        to: nowSeconds,
+      };
+    case "short_term":
+      return {
+        from: toUnixSeconds(getStartOfUtcMonth(now)),
+        to: nowSeconds,
+      };
+    case "medium_term":
+      return {
+        from: toUnixSeconds(subtractMonthsUtc(now, 6)),
+        to: nowSeconds,
+      };
+    case "year":
+      return getUtcYearRange(now.getUTCFullYear(), now);
+    case "last_year":
+      return getUtcYearRange(now.getUTCFullYear() - 1, now);
+    case "specific_year": {
+      const resolvedYear = selectedYear ?? now.getUTCFullYear();
+      return getUtcYearRange(resolvedYear, now);
+    }
+    default:
+      return null;
+  }
+}
+
+function toValidSelectedYear(value: number | null, now: Date): number | null {
+  if (value === null || !Number.isInteger(value)) {
+    return null;
+  }
+
+  const currentYear = now.getUTCFullYear();
+  if (value < LASTFM_FIRST_YEAR || value > currentYear) {
+    return null;
+  }
+
+  return value;
+}
 
 function isLikelyLastFmImageHost(url: string): boolean {
   try {
@@ -171,8 +283,6 @@ function toSpotifyTimeRange(period: StoryPeriod): SpotifyTimeRange {
     case "medium_term":
     case "long_term":
       return period;
-    case "semester":
-      return "medium_term";
     case "year":
     case "last_year":
     case "specific_year":
@@ -217,13 +327,16 @@ export async function GET(req: NextRequest) {
       ? templateParam
       : "top-artists-grid";
     const source = isSource(sourceParam) ? sourceParam : "spotify";
+    const now = new Date();
     const yearParam = params.get("year");
-    const parsedYear = Number(yearParam);
-    const selectedYear = Number.isFinite(parsedYear) ? parsedYear : null;
+    const parsedYear = yearParam === null ? null : Number(yearParam);
+    const validSelectedYear = toValidSelectedYear(parsedYear, now);
+    const selectedYear =
+      period === "specific_year"
+        ? (validSelectedYear ?? now.getUTCFullYear())
+        : validSelectedYear;
     const storagePeriod =
-      period === "specific_year" && selectedYear
-        ? `${period}:${selectedYear}`
-        : period;
+      period === "specific_year" ? `${period}:${selectedYear}` : period;
     const logoUrl = new URL("/logo.svg", req.nextUrl.origin).toString();
 
     let normalizedArtists: NormalizedArtist[] = [];
@@ -236,11 +349,30 @@ export async function GET(req: NextRequest) {
       }
 
       const fallbackSpotifyToken = await getServerAccessToken(req);
-      const topArtists = await getLastFmTopArtists(
-        username,
-        LASTFM_PERIODS[period],
-      );
-      const rawArtists = topArtists.topartists.artist;
+      const dateRange = getLastFmDateRangeForPeriod(period, selectedYear, now);
+      let rawArtists: LastFmArtist[] = [];
+      let usedDateRangeFetch = false;
+
+      if (dateRange) {
+        try {
+          rawArtists = await getTopArtistsByDateRange(username, dateRange);
+          usedDateRangeFetch = true;
+        } catch (error) {
+          console.error(
+            "Last.fm weekly artist chart lookup failed, falling back to period chart",
+            error,
+          );
+        }
+      }
+
+      if (!usedDateRangeFetch) {
+        const topArtists = await getLastFmTopArtists(
+          username,
+          LASTFM_PERIODS[period],
+        );
+        rawArtists = topArtists.topartists.artist;
+      }
+
       normalizedArtists = await Promise.all(
         rawArtists.map(async (artist, index) => {
           // The story templates only render the first 12 tiles.

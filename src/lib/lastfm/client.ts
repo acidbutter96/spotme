@@ -18,18 +18,36 @@ interface LastFmTopArtistsResponse {
   };
 }
 
+interface LastFmWeeklyArtistChartResponse {
+  weeklyartistchart?: {
+    artist?: LastFmWeeklyArtistChartArtist[] | LastFmWeeklyArtistChartArtist;
+  };
+}
+
+interface LastFmWeeklyArtistChartArtist {
+  name?: string;
+  "#text"?: string;
+  mbid?: string;
+  playcount?: string | number;
+}
+
+interface LastFmArtistImage {
+  "#text": string;
+  size: string;
+}
+
 interface LastFmArtist {
   name: string;
   mbid: string;
   playcount: string;
-  image: Array<{ "#text": string; size: string }>;
+  image: LastFmArtistImage[];
 }
 
 interface LastFmArtistInfoResponse {
   artist: {
     name: string;
     mbid: string;
-    image: Array<{ "#text": string; size: string }>;
+    image: LastFmArtistImage[];
   };
 }
 
@@ -103,6 +121,31 @@ export async function getTopArtists(
   });
 }
 
+export async function getTopArtistsByDateRange(
+  username: string,
+  input: { from: number; to: number; limit?: number },
+): Promise<LastFmArtist[]> {
+  const response = await lastFmFetch<LastFmWeeklyArtistChartResponse>({
+    method: "user.getweeklyartistchart",
+    user: username,
+    from: String(input.from),
+    to: String(input.to),
+    limit: String(input.limit ?? 50),
+    autocorrect: "1",
+  });
+
+  const artists = response.weeklyartistchart?.artist;
+  if (!artists) {
+    return [];
+  }
+
+  const normalized = (Array.isArray(artists) ? artists : [artists])
+    .map(normalizeWeeklyChartArtist)
+    .filter((artist): artist is LastFmArtist => Boolean(artist));
+
+  return normalized;
+}
+
 export async function getArtistInfo(input: {
   name?: string;
   mbid?: string;
@@ -152,10 +195,38 @@ export function getBestArtistImage(
 }
 
 export type {
+  LastFmArtistImage,
   LastFmArtist,
   LastFmArtistInfoResponse,
   LastFmTopArtistsResponse,
 };
+
+function normalizeWeeklyChartArtist(
+  input: LastFmWeeklyArtistChartArtist,
+): LastFmArtist | null {
+  const rawName =
+    typeof input.name === "string"
+      ? input.name
+      : typeof input["#text"] === "string"
+        ? input["#text"]
+        : "";
+  const name = rawName.trim();
+  if (!name) {
+    return null;
+  }
+
+  return {
+    name,
+    mbid: typeof input.mbid === "string" ? input.mbid : "",
+    playcount:
+      typeof input.playcount === "number"
+        ? String(input.playcount)
+        : typeof input.playcount === "string"
+          ? input.playcount
+          : "0",
+    image: [],
+  };
+}
 
 function normalizeLastFmImageUrl(url: string | null): string | null {
   if (!url) {

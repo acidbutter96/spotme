@@ -7,7 +7,6 @@ const PERIODS = [
   { value: "15days", label: "Last 15 days" },
   { value: "30days", label: "Last 30 days" },
   { value: "short_term", label: "This month" },
-  { value: "semester", label: "Semester" },
   { value: "medium_term", label: "Last 6 months" },
   { value: "year", label: "This year" },
   { value: "last_year", label: "Last year" },
@@ -27,8 +26,10 @@ const SOURCES = [
 
 const SPOTIFY_PERIODS = new Set(["short_term", "medium_term", "long_term"]);
 const CURRENT_YEAR = new Date().getFullYear();
-const YEAR_OPTIONS = Array.from({ length: 20 }, (_, index) =>
-  CURRENT_YEAR - index,
+const FIRST_LASTFM_YEAR = 2002;
+const YEAR_OPTIONS = Array.from(
+  { length: CURRENT_YEAR - FIRST_LASTFM_YEAR + 1 },
+  (_, index) => CURRENT_YEAR - index,
 );
 
 type Source = (typeof SOURCES)[number]["value"];
