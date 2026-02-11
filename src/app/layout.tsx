@@ -54,12 +54,6 @@ export default function RootLayout({
                 >
                   Stories
                 </Link>
-                <Link
-                  href="/login"
-                  className="rounded-full border border-border px-4 py-2 transition hover:border-neon-pink/70 hover:text-foreground"
-                >
-                  Login
-                </Link>
               </nav>
             </div>
           </header>
