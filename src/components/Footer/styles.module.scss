@@ -1,43 +1,59 @@
 .container {
-  position: absolute;
-  margin-top: 20rem !important;
-  bottom: 0;
-  right: 0;
-  height: 5rem;
   width: 100%;
+  padding: 1rem 0;
+  position: relative;
+  z-index: 1;
+}
+
+.inner {
   display: flex;
-  flex-direction: row-reverse;
   align-items: center;
-  padding: 0 1rem;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.textRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgb(from var(--color-foreground) r g b / 0.6);
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.separator {
+  color: rgb(from var(--color-foreground) r g b / 0.35);
+}
+
+.developer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.devLink {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.devLogo {
+  height: 1.75rem;
+  width: auto;
+}
+
+@media (max-width: 640px) {
+  .inner {
+    justify-content: center;
+  }
 
   .textRow {
-    height: 4rem;
-    display: flex;
-    align-items: center;
-    position: relative;
+    justify-content: center;
+    text-align: center;
+  }
 
-    a {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      height: 100%;
-      text-decoration: none;
-      cursor: pointer;
-
-      span {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        height: 100%;
-
-        img {
-          width: 100%;
-          height: auto;
-          max-height: 3rem;
-        }
-      }
-    }
+  .separator {
+    display: none;
   }
 }

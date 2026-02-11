@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import LoginPanel from "@/components/auth/LoginPanel";
+import styles from "./styles.module.scss";
 
 const LASTFM_USERNAME_COOKIE = "lastfm_username";
 
@@ -24,14 +25,14 @@ export default async function LoginPage() {
   }
 
   return (
-    <main className="py-12">
-      <div className="mx-auto flex w-full max-w-xl flex-col gap-10 px-6">
-        <div className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.4em] text-foreground/50">
+    <main className={styles.page}>
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <p className={styles.eyebrow}>
             Authentication
           </p>
-          <h1 className="text-3xl font-semibold">Continue with Last.fm</h1>
-          <p className="text-foreground/70">
+          <h1 className={styles.title}>Continue with Last.fm</h1>
+          <p className={styles.description}>
             Spotify sign-in is temporarily disabled. Enter your Last.fm username
             to generate stories from your public profile.
           </p>

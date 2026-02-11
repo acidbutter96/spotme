@@ -1,0 +1,33 @@
+.page {
+  padding: 3rem 0;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4em;
+  color: rgb(from var(--color-foreground) r g b / 0.5);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.875rem;
+  font-weight: 600;
+}
+
+.description {
+  margin: 0;
+  color: rgb(from var(--color-foreground) r g b / 0.6);
+}

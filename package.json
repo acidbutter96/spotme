@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@devbutter/paint-background": "https://github.com/acidbutter96/paint-background.git#v1.0.2",
     "@vercel/og": "^0.7.2",
     "mongodb": "^6.21.0",
     "next": "16.1.1",
@@ -18,7 +19,6 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
     "@types/minimatch": "5.1.2",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -26,7 +26,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "sass": "^1.97.3",
-    "tailwindcss": "^4",
     "typescript": "^5"
   }
 }

@@ -2,8 +2,10 @@ import type { Metadata, Viewport } from "next";
 import { Roboto } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
+import BackgroundClient from "@/components/BackgroundClient";
 import Footer from "@/components/Footer";
-import "./globals.css";
+import "./global.scss";
+import styles from "./styles.module.scss";
 
 const roboto = Roboto({
   weight: ["100", "300", "400", "500", "700", "900"],
@@ -34,34 +36,35 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${roboto.className} min-h-screen text-foreground antialiased`}>
-        <div className="flex min-h-screen flex-col">
-          <header className="border-b border-border bg-background/20 backdrop-blur">
-            <div className="app-container flex items-center justify-between py-5">
-              <Link href="/" className="group flex items-center gap-3">
+      <body className={`${roboto.className} ${styles.body}`}>
+        <div className={styles.shell}>
+          <BackgroundClient />
+          <header className={styles.header}>
+            <div className={`app-container ${styles.headerInner}`}>
+              <Link href="/" className={styles.brand}>
                 <Image
                   src="/logo.svg"
                   alt="Spotme"
                   width={1227}
                   height={1110}
                   priority
-                  className="h-9 w-auto drop-shadow-[0_0_18px_rgba(255,59,212,0.25)]"
+                  className={styles.brandLogo}
                 />
-                <span className="text-sm font-semibold tracking-wide text-foreground transition group-hover:text-neon-green">
+                <span className={styles.brandText}>
                   Spotme
                 </span>
               </Link>
-              <nav className="flex items-center gap-3 text-sm text-foreground/70">
+              <nav className={styles.nav}>
                 <Link
                   href="/stories"
-                  className="rounded-full px-3 py-2 transition hover:text-foreground"
+                  className={styles.navLink}
                 >
                   Stories
                 </Link>
               </nav>
             </div>
           </header>
-          <div className="flex-1 relative pb-24">{children}</div>
+          <div className={styles.main}>{children}</div>
           <Footer />
         </div>
       </body>

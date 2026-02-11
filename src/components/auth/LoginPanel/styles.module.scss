@@ -1,0 +1,63 @@
+.root {
+  padding: 2rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: rgb(from var(--color-foreground) r g b / 0.6);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgb(from var(--color-foreground) r g b / 0.5);
+}
+
+.helpText {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgb(from var(--color-foreground) r g b / 0.5);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-neon-pink);
+}
+
+.submit {
+  width: 100%;
+}
+
+.notice {
+  margin: 0;
+  font-size: 0.75rem;
+  color: rgb(from var(--color-foreground) r g b / 0.4);
+}
