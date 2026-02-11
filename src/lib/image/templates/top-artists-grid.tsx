@@ -3,6 +3,7 @@ import { ArtistPlaceholder } from "@/lib/image/placeholders/artist";
 
 interface TopArtistsGridTemplateProps {
   periodLabel: string;
+  logoUrl: string;
   topArtists: Array<{
     name: string;
     imageUrl: string | null;
@@ -16,6 +17,7 @@ const EXTRA_ROW_GAP = TILE_SIZE + TILE_GAP;
 
 export function TopArtistsGridTemplate({
   periodLabel,
+  logoUrl,
   topArtists,
 }: TopArtistsGridTemplateProps): ReactElement {
   const tiles = topArtists.length > 0
@@ -102,7 +104,7 @@ export function TopArtistsGridTemplate({
                   style={{ objectFit: "cover" }}
                 />
               ) : (
-                <ArtistPlaceholder />
+                <ArtistPlaceholder logoUrl={logoUrl} />
               )}
             </div>
             <p
@@ -123,14 +125,40 @@ export function TopArtistsGridTemplate({
         style={{
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
           paddingTop: "24px",
           borderTop: "1px solid rgba(255,255,255,0.12)",
           fontSize: "24px",
           color: "rgba(255,255,255,0.6)",
         }}
       >
-        <span>Generated with Music Stories</span>
-        <span>1080x1920</span>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "14px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              padding: "7px",
+              borderRadius: "16px",
+              backgroundColor: "rgba(57,255,136,0.12)",
+              boxShadow:
+                "0 0 24px rgba(255,59,212,0.45), 0 0 10px rgba(57,255,136,0.35)",
+            }}
+          >
+            <img
+              src={logoUrl}
+              alt="Music Stories logo"
+              width={48}
+              height={48}
+              style={{ borderRadius: "10px" }}
+            />
+          </div>
+          <span>Generated with spotme.space</span>
+        </div>
       </footer>
     </div>
   );

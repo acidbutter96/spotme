@@ -27,14 +27,14 @@ export default async function StoriesPage() {
   }
 
   return (
-    <main className="min-h-screen px-6 py-12">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-10">
+    <main className="py-12">
+      <div className="app-container flex flex-col gap-10">
         <header className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+          <p className="text-xs uppercase tracking-[0.4em] text-foreground/50">
             Stories
           </p>
           <h1 className="text-3xl font-semibold">Your music story</h1>
-          <p className="text-white/60">
+          <p className="text-foreground/60">
             Select a source, period, and template to generate a shareable story.
           </p>
         </header>

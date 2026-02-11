@@ -1,10 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const PERIODS = [
+  { value: "week", label: "This week" },
+  { value: "15days", label: "Last 15 days" },
+  { value: "30days", label: "Last 30 days" },
   { value: "short_term", label: "This month" },
   { value: "medium_term", label: "Last 6 months" },
+  { value: "year", label: "This year" },
+  { value: "last_year", label: "Last year" },
+  { value: "specific_year", label: "Specific year" },
   { value: "long_term", label: "All time" },
 ] as const;
 
@@ -17,6 +23,14 @@ const SOURCES = [
   { value: "spotify", label: "Spotify" },
   { value: "lastfm", label: "Last.fm" },
 ] as const;
+
+const SPOTIFY_PERIODS = new Set(["short_term", "medium_term", "long_term"]);
+const CURRENT_YEAR = new Date().getFullYear();
+const FIRST_LASTFM_YEAR = 2002;
+const DEFAULT_YEAR_OPTIONS = Array.from(
+  { length: CURRENT_YEAR - FIRST_LASTFM_YEAR + 1 },
+  (_, index) => CURRENT_YEAR - index,
+);
 
 type Source = (typeof SOURCES)[number]["value"];
 
@@ -41,9 +55,71 @@ export default function StoryPreview({
   >("top-artists-grid");
   const [imageError, setImageError] = useState(false);
   const [lastFmUsername, setLastFmUsername] = useState(initialLastFmUsername);
+  const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
+  const [availableYears, setAvailableYears] = useState<number[]>(
+    DEFAULT_YEAR_OPTIONS,
+  );
+  const [isLoadingAvailableYears, setIsLoadingAvailableYears] = useState(false);
 
   const trimmedUsername = lastFmUsername.trim();
+  const yearOptions =
+    source === "lastfm" ? availableYears : DEFAULT_YEAR_OPTIONS;
   const canGenerate = source !== "lastfm" || trimmedUsername.length > 0;
+
+  useEffect(() => {
+    if (source !== "lastfm" || !trimmedUsername) {
+      setAvailableYears(DEFAULT_YEAR_OPTIONS);
+      setIsLoadingAvailableYears(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setIsLoadingAvailableYears(true);
+
+    void fetch(`/api/lastfm/years?username=${encodeURIComponent(trimmedUsername)}`, {
+      signal: controller.signal,
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Failed to load available years");
+        }
+
+        const body = (await response.json()) as { years?: unknown };
+        if (!Array.isArray(body.years)) {
+          setAvailableYears(DEFAULT_YEAR_OPTIONS);
+          return;
+        }
+
+        const years = body.years
+          .filter((value): value is number => Number.isInteger(value))
+          .sort((a, b) => b - a);
+        setAvailableYears(years);
+      })
+      .catch((error: unknown) => {
+        if ((error as { name?: string })?.name === "AbortError") {
+          return;
+        }
+        setAvailableYears(DEFAULT_YEAR_OPTIONS);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoadingAvailableYears(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [source, trimmedUsername]);
+
+  useEffect(() => {
+    if (yearOptions.length === 0) {
+      return;
+    }
+
+    if (!yearOptions.includes(selectedYear)) {
+      setSelectedYear(yearOptions[0]);
+    }
+  }, [yearOptions, selectedYear]);
 
   const imageUrl = useMemo(() => {
     const params = new URLSearchParams({
@@ -54,53 +130,72 @@ export default function StoryPreview({
     if (source === "lastfm" && trimmedUsername) {
       params.set("username", trimmedUsername);
     }
+    if (period === "specific_year") {
+      params.set("year", String(selectedYear));
+    }
     return `/api/image/story?${params.toString()}`;
-  }, [period, template, source, trimmedUsername]);
+  }, [period, template, source, trimmedUsername, selectedYear]);
 
   return (
     <section className="grid gap-8 lg:grid-cols-[320px_1fr]">
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+      <div className="app-card p-6">
         <div className="space-y-6">
           <div className="space-y-2">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground/60">
               Source
             </h2>
             <div className="flex flex-col gap-2">
               {SOURCES.map((option) => {
                 const isDisabled = option.value === "spotify" && !spotifyEnabled;
                 return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    if (isDisabled) {
-                      return;
-                    }
-                    setSource(option.value);
-                    setImageError(false);
-                  }}
-                  disabled={isDisabled}
-                  className={`rounded-2xl px-4 py-3 text-left text-sm transition ${
-                    source === option.value
-                      ? "bg-white text-black"
-                      : isDisabled
-                        ? "cursor-not-allowed border border-white/10 bg-transparent text-white/30"
-                        : "border border-white/10 bg-transparent text-white/70 hover:border-white/40"
-                  }`}
-                >
-                  {option.label}
-                </button>
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      if (isDisabled) {
+                        return;
+                      }
+                      if (
+                        option.value === "spotify" &&
+                        !SPOTIFY_PERIODS.has(period)
+                      ) {
+                        setPeriod("short_term");
+                      }
+                      setSource(option.value);
+                      setImageError(false);
+                    }}
+                    disabled={isDisabled}
+                    className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
+                      source === option.value
+                        ? "border-transparent bg-gradient-to-r from-neon-pink to-neon-green text-black shadow-neon hover:brightness-110"
+                        : isDisabled
+                          ? "cursor-not-allowed border-border bg-transparent text-foreground/30"
+                          : "border-border bg-transparent text-foreground/70 hover:border-neon-pink/70"
+                    }`}
+                  >
+                    <span className="inline-flex items-center gap-2">
+                      {option.value === "lastfm" ? (
+                        <img
+                          src="/icons/last-fm.svg"
+                          alt=""
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                        />
+                      ) : null}
+                      <span>{option.label}</span>
+                    </span>
+                  </button>
                 );
               })}
             </div>
             {!spotifyEnabled ? (
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-foreground/40">
                 Spotify preview requires sign-in.
               </p>
             ) : null}
             {source === "lastfm" ? (
               <div className="space-y-2 pt-2">
-                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
+                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/50">
                   Last.fm Username
                 </label>
                 <input
@@ -111,40 +206,89 @@ export default function StoryPreview({
                     setImageError(false);
                   }}
                   placeholder="Enter your username"
-                  className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none"
+                  className="app-input"
                 />
-                <p className="text-xs text-white/50">
+                <p className="text-xs text-foreground/50">
                   We will use your public Last.fm profile to pull top artists.
                 </p>
               </div>
             ) : null}
           </div>
           <div className="space-y-2">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground/60">
               Period
             </h2>
             <div className="flex flex-col gap-2">
-              {PERIODS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    setPeriod(option.value);
+              {PERIODS.map((option) => {
+                const isDisabled =
+                  source === "spotify" && !SPOTIFY_PERIODS.has(option.value);
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    disabled={isDisabled}
+                    onClick={() => {
+                      if (isDisabled) {
+                        return;
+                      }
+                      setPeriod(option.value);
+                      setImageError(false);
+                    }}
+                    className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
+                      period === option.value
+                        ? "border-transparent bg-gradient-to-r from-neon-pink to-neon-green text-black shadow-neon hover:brightness-110"
+                        : isDisabled
+                          ? "cursor-not-allowed border-border bg-transparent text-foreground/30"
+                          : "border-border bg-transparent text-foreground/70 hover:border-neon-pink/70"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            {period === "specific_year" ? (
+              <div className="space-y-2 pt-2">
+                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/50">
+                  Year
+                </label>
+                <select
+                  value={selectedYear}
+                  onChange={(event) => {
+                    setSelectedYear(Number(event.target.value));
                     setImageError(false);
                   }}
-                  className={`rounded-2xl px-4 py-3 text-left text-sm transition ${
-                    period === option.value
-                      ? "bg-white text-black"
-                      : "border border-white/10 bg-transparent text-white/70 hover:border-white/40"
-                  }`}
+                  className="app-input"
+                  disabled={
+                    source === "lastfm" &&
+                    !isLoadingAvailableYears &&
+                    yearOptions.length === 0
+                  }
                 >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+                  {yearOptions.length === 0 ? (
+                    <option value={selectedYear}>No years available</option>
+                  ) : (
+                    yearOptions.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))
+                  )}
+                </select>
+                {source === "lastfm" && isLoadingAvailableYears ? (
+                  <p className="text-xs text-foreground/40">
+                    Loading available years from Last.fm...
+                  </p>
+                ) : source === "lastfm" && yearOptions.length === 0 ? (
+                  <p className="text-xs text-foreground/40">
+                    No scrobble years found for this Last.fm user.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </div>
           <div className="space-y-2">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground/60">
               Template
             </h2>
             <div className="flex flex-col gap-2">
@@ -156,10 +300,10 @@ export default function StoryPreview({
                     setTemplate(option.value);
                     setImageError(false);
                   }}
-                  className={`rounded-2xl px-4 py-3 text-left text-sm transition ${
+                  className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
                     template === option.value
-                      ? "bg-white text-black"
-                      : "border border-white/10 bg-transparent text-white/70 hover:border-white/40"
+                      ? "border-transparent bg-gradient-to-r from-neon-pink to-neon-green text-black shadow-neon hover:brightness-110"
+                      : "border-border bg-transparent text-foreground/70 hover:border-neon-pink/70"
                   }`}
                 >
                   {option.label}
@@ -171,14 +315,14 @@ export default function StoryPreview({
       </div>
 
       <div className="space-y-6">
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-black">
-          <div className="aspect-9/16 w-full bg-[#0b0d12]">
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-black/40 shadow-soft">
+          <div className="aspect-9/16 w-full bg-background">
             {!canGenerate ? (
-              <div className="flex h-full items-center justify-center text-sm text-white/60">
+              <div className="flex h-full items-center justify-center text-sm text-foreground/60">
                 Enter your Last.fm username to generate a story.
               </div>
             ) : imageError ? (
-              <div className="flex h-full items-center justify-center text-sm text-white/60">
+              <div className="flex h-full items-center justify-center text-sm text-foreground/60">
                 Unable to load story. Try another period.
               </div>
             ) : (
@@ -197,7 +341,7 @@ export default function StoryPreview({
             <a
               href={imageUrl}
               download={`music-story-${source}-${template}-${period}.png`}
-              className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:opacity-90"
+              className="btn-primary"
             >
               Download Image
             </a>
@@ -205,7 +349,7 @@ export default function StoryPreview({
             <button
               type="button"
               disabled
-              className="cursor-not-allowed rounded-full bg-white/40 px-6 py-3 text-sm font-semibold text-black/60"
+              className="btn-disabled"
             >
               Download Image
             </button>
@@ -214,11 +358,7 @@ export default function StoryPreview({
             type="button"
             onClick={() => setImageError(false)}
             disabled={!canGenerate}
-            className={`rounded-full border px-6 py-3 text-sm font-semibold transition ${
-              canGenerate
-                ? "border-white/20 text-white/70 hover:border-white/60"
-                : "cursor-not-allowed border-white/10 text-white/30"
-            }`}
+            className={canGenerate ? "btn-secondary" : "btn-disabled"}
           >
             Refresh Preview
           </button>

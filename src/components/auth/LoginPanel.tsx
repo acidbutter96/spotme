@@ -75,15 +75,15 @@ export default function LoginPanel({
   }
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl">
+    <div className="app-card p-8">
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Last.fm username</h2>
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-foreground/60">
           We will use your public Last.fm profile to fetch top artists.
         </p>
 
         <div className="space-y-2">
-          <label className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50">
+          <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/50">
             Username
           </label>
           <input
@@ -92,29 +92,25 @@ export default function LoginPanel({
             onChange={(event) => setUsername(event.target.value)}
             placeholder="e.g. marcospereira"
             autoComplete="username"
-            className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none"
+            className="app-input"
           />
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-foreground/50">
             This saves a cookie on this device.
           </p>
         </div>
 
-        {error ? <p className="text-sm text-red-300">{error}</p> : null}
+        {error ? <p className="text-sm text-neon-pink">{error}</p> : null}
 
         <button
           type="button"
           disabled={!canContinue}
           onClick={handleContinue}
-          className={`w-full rounded-full px-6 py-3 text-sm font-semibold transition ${
-            canContinue
-              ? "bg-white text-black hover:opacity-90"
-              : "cursor-not-allowed bg-white/30 text-black/60"
-          }`}
+          className={`w-full ${canContinue ? "btn-primary" : "btn-disabled"}`}
         >
           {isSubmitting ? "Saving..." : "Continue"}
         </button>
 
-        <p className="text-xs text-white/40">
+        <p className="text-xs text-foreground/40">
           Spotify sign-in is temporarily disabled.
         </p>
       </div>

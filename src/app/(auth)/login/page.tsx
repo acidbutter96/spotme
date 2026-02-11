@@ -24,14 +24,14 @@ export default async function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen px-6 py-12">
-      <div className="mx-auto flex w-full max-w-xl flex-col gap-10">
+    <main className="py-12">
+      <div className="mx-auto flex w-full max-w-xl flex-col gap-10 px-6">
         <div className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.4em] text-white/50">
+          <p className="text-xs uppercase tracking-[0.4em] text-foreground/50">
             Authentication
           </p>
           <h1 className="text-3xl font-semibold">Continue with Last.fm</h1>
-          <p className="text-white/70">
+          <p className="text-foreground/70">
             Spotify sign-in is temporarily disabled. Enter your Last.fm username
             to generate stories from your public profile.
           </p>
