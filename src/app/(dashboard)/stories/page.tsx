@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import StoryPreview from "@/components/stories/StoryPreview";
 import { authOptions } from "@/lib/auth";
+import styles from "./styles.module.scss";
 
 const LASTFM_USERNAME_COOKIE = "lastfm_username";
 
@@ -27,14 +28,14 @@ export default async function StoriesPage() {
   }
 
   return (
-    <main className="py-12">
-      <div className="app-container flex flex-col gap-10">
-        <header className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.4em] text-foreground/50">
+    <main className={styles.page}>
+      <div className={`app-container ${styles.container}`}>
+        <header className={styles.header}>
+          <p className={styles.eyebrow}>
             Stories
           </p>
-          <h1 className="text-3xl font-semibold">Your music story</h1>
-          <p className="text-foreground/60">
+          <h1 className={styles.title}>Your music story</h1>
+          <p className={styles.description}>
             Select a source, period, and template to generate a shareable story.
           </p>
         </header>

@@ -1,0 +1,128 @@
+.body {
+  min-height: 100vh;
+  color: var(--color-foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  border-bottom: 1px solid var(--color-border);
+  background-color: rgb(from var(--color-background) r g b / 0.2);
+  backdrop-filter: blur(14px);
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 0;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.brandLogo {
+  height: 2.25rem;
+  width: auto;
+  filter: drop-shadow(0 0 18px rgb(from var(--color-neon-pink) r g b / 0.25));
+}
+
+.brandText {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  color: var(--color-foreground);
+  transition: color 150ms ease;
+}
+
+.brand:hover .brandText {
+  color: var(--color-neon-green);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: rgb(from var(--color-foreground) r g b / 0.7);
+}
+
+.navLink {
+  border-radius: 9999px;
+  padding: 0.5rem 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  transition: color 150ms ease;
+}
+
+.navLink:hover {
+  color: var(--color-foreground);
+}
+
+.main {
+  position: relative;
+  flex: 1;
+  padding-bottom: 6rem;
+}
+
+.page {
+  padding: 3rem 0;
+}
+
+.homeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.homeIntro {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4em;
+  color: rgb(from var(--color-foreground) r g b / 0.5);
+}
+
+.homeTitle {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1.15;
+  background-image: linear-gradient(to right, var(--color-neon-pink), var(--color-neon-green));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (min-width: 640px) {
+  .homeTitle {
+    font-size: 3rem;
+  }
+}
+
+.homeDescription {
+  max-width: 42rem;
+  font-size: 1.125rem;
+  color: rgb(from var(--color-foreground) r g b / 0.7);
+}
+
+.homeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}

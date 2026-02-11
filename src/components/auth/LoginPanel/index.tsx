@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import styles from "./styles.module.scss";
 
 const USERNAME_COOKIE = "lastfm_username";
 
@@ -75,17 +76,17 @@ export default function LoginPanel({
   }
 
   return (
-    <div className="app-card p-8">
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Last.fm username</h2>
-        <p className="text-sm text-foreground/60">
-          We will use your public Last.fm profile to fetch top artists.
-        </p>
+    <div className={`app-card ${styles.root}`}>
+      <div className={styles.content}>
+        <div className={styles.intro}>
+          <h2 className={styles.title}>Last.fm username</h2>
+          <p className={styles.subtitle}>
+            We will use your public Last.fm profile to fetch top artists.
+          </p>
+        </div>
 
-        <div className="space-y-2">
-          <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/50">
-            Username
-          </label>
+        <div className={styles.field}>
+          <label className={styles.label}>Username</label>
           <input
             type="text"
             value={username}
@@ -94,25 +95,21 @@ export default function LoginPanel({
             autoComplete="username"
             className="app-input"
           />
-          <p className="text-xs text-foreground/50">
-            This saves a cookie on this device.
-          </p>
+          <p className={styles.helpText}>This saves a cookie on this device.</p>
         </div>
 
-        {error ? <p className="text-sm text-neon-pink">{error}</p> : null}
+        {error ? <p className={styles.error}>{error}</p> : null}
 
         <button
           type="button"
           disabled={!canContinue}
           onClick={handleContinue}
-          className={`w-full ${canContinue ? "btn-primary" : "btn-disabled"}`}
+          className={`${styles.submit} ${canContinue ? "btn-primary" : "btn-disabled"}`}
         >
           {isSubmitting ? "Saving..." : "Continue"}
         </button>
 
-        <p className="text-xs text-foreground/40">
-          Spotify sign-in is temporarily disabled.
-        </p>
+        <p className={styles.notice}>Spotify sign-in is temporarily disabled.</p>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import styles from "./styles.module.scss";
 
 const PERIODS = [
   { value: "week", label: "This week" },
@@ -34,6 +35,22 @@ const DEFAULT_YEAR_OPTIONS = Array.from(
 
 type Source = (typeof SOURCES)[number]["value"];
 
+function optionButtonClass({
+  isActive,
+  isDisabled,
+}: {
+  isActive: boolean;
+  isDisabled: boolean;
+}) {
+  if (isActive) {
+    return `${styles.optionButton} ${styles.optionActive}`;
+  }
+  if (isDisabled) {
+    return `${styles.optionButton} ${styles.optionDisabled}`;
+  }
+  return `${styles.optionButton} ${styles.optionIdle}`;
+}
+
 export default function StoryPreview({
   initialSource = "spotify",
   initialLastFmUsername = "",
@@ -50,9 +67,9 @@ export default function StoryPreview({
   const [period, setPeriod] = useState<(typeof PERIODS)[number]["value"]>(
     "short_term",
   );
-  const [template, setTemplate] = useState<
-    (typeof TEMPLATES)[number]["value"]
-  >("top-artists-grid");
+  const [template, setTemplate] = useState<(typeof TEMPLATES)[number]["value"]>(
+    "top-artists-grid",
+  );
   const [imageError, setImageError] = useState(false);
   const [lastFmUsername, setLastFmUsername] = useState(initialLastFmUsername);
   const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
@@ -62,14 +79,14 @@ export default function StoryPreview({
   const [isLoadingAvailableYears, setIsLoadingAvailableYears] = useState(false);
 
   const trimmedUsername = lastFmUsername.trim();
-  const yearOptions =
-    source === "lastfm" ? availableYears : DEFAULT_YEAR_OPTIONS;
+  const yearOptions = source === "lastfm" ? availableYears : DEFAULT_YEAR_OPTIONS;
+  const resolvedSelectedYear = yearOptions.includes(selectedYear)
+    ? selectedYear
+    : (yearOptions[0] ?? selectedYear);
   const canGenerate = source !== "lastfm" || trimmedUsername.length > 0;
 
   useEffect(() => {
     if (source !== "lastfm" || !trimmedUsername) {
-      setAvailableYears(DEFAULT_YEAR_OPTIONS);
-      setIsLoadingAvailableYears(false);
       return;
     }
 
@@ -111,16 +128,6 @@ export default function StoryPreview({
     return () => controller.abort();
   }, [source, trimmedUsername]);
 
-  useEffect(() => {
-    if (yearOptions.length === 0) {
-      return;
-    }
-
-    if (!yearOptions.includes(selectedYear)) {
-      setSelectedYear(yearOptions[0]);
-    }
-  }, [yearOptions, selectedYear]);
-
   const imageUrl = useMemo(() => {
     const params = new URLSearchParams({
       template,
@@ -131,22 +138,21 @@ export default function StoryPreview({
       params.set("username", trimmedUsername);
     }
     if (period === "specific_year") {
-      params.set("year", String(selectedYear));
+      params.set("year", String(resolvedSelectedYear));
     }
     return `/api/image/story?${params.toString()}`;
-  }, [period, template, source, trimmedUsername, selectedYear]);
+  }, [period, template, source, trimmedUsername, resolvedSelectedYear]);
 
   return (
-    <section className="grid gap-8 lg:grid-cols-[320px_1fr]">
-      <div className="app-card p-6">
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground/60">
-              Source
-            </h2>
-            <div className="flex flex-col gap-2">
+    <section className={styles.root}>
+      <div className={`app-card ${styles.sidebar}`}>
+        <div className={styles.sidebarInner}>
+          <div className={styles.group}>
+            <h2 className={styles.groupTitle}>Source</h2>
+            <div className={styles.options}>
               {SOURCES.map((option) => {
                 const isDisabled = option.value === "spotify" && !spotifyEnabled;
+                const isActive = source === option.value;
                 return (
                   <button
                     key={option.value}
@@ -155,31 +161,26 @@ export default function StoryPreview({
                       if (isDisabled) {
                         return;
                       }
-                      if (
-                        option.value === "spotify" &&
-                        !SPOTIFY_PERIODS.has(period)
-                      ) {
+                      if (option.value === "spotify" && !SPOTIFY_PERIODS.has(period)) {
                         setPeriod("short_term");
                       }
                       setSource(option.value);
+                      if (option.value !== "lastfm") {
+                        setAvailableYears(DEFAULT_YEAR_OPTIONS);
+                        setIsLoadingAvailableYears(false);
+                      }
                       setImageError(false);
                     }}
                     disabled={isDisabled}
-                    className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                      source === option.value
-                        ? "border-transparent bg-gradient-to-r from-neon-pink to-neon-green text-black shadow-neon hover:brightness-110"
-                        : isDisabled
-                          ? "cursor-not-allowed border-border bg-transparent text-foreground/30"
-                          : "border-border bg-transparent text-foreground/70 hover:border-neon-pink/70"
-                    }`}
+                    className={optionButtonClass({ isActive, isDisabled })}
                   >
-                    <span className="inline-flex items-center gap-2">
+                    <span className={styles.optionContent}>
                       {option.value === "lastfm" ? (
                         <img
                           src="/icons/last-fm.svg"
                           alt=""
                           aria-hidden="true"
-                          className="h-4 w-4"
+                          className={styles.optionIcon}
                         />
                       ) : null}
                       <span>{option.label}</span>
@@ -188,40 +189,42 @@ export default function StoryPreview({
                 );
               })}
             </div>
+
             {!spotifyEnabled ? (
-              <p className="text-xs text-foreground/40">
-                Spotify preview requires sign-in.
-              </p>
+              <p className={styles.mutedText}>Spotify preview requires sign-in.</p>
             ) : null}
+
             {source === "lastfm" ? (
-              <div className="space-y-2 pt-2">
-                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/50">
-                  Last.fm Username
-                </label>
+              <div className={styles.field}>
+                <label className={styles.label}>Last.fm Username</label>
                 <input
                   type="text"
                   value={lastFmUsername}
                   onChange={(event) => {
-                    setLastFmUsername(event.target.value);
+                    const nextValue = event.target.value;
+                    setLastFmUsername(nextValue);
+                    if (!nextValue.trim()) {
+                      setAvailableYears(DEFAULT_YEAR_OPTIONS);
+                      setIsLoadingAvailableYears(false);
+                    }
                     setImageError(false);
                   }}
                   placeholder="Enter your username"
                   className="app-input"
                 />
-                <p className="text-xs text-foreground/50">
+                <p className={styles.helpText}>
                   We will use your public Last.fm profile to pull top artists.
                 </p>
               </div>
             ) : null}
           </div>
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground/60">
-              Period
-            </h2>
-            <div className="flex flex-col gap-2">
+
+          <div className={styles.group}>
+            <h2 className={styles.groupTitle}>Period</h2>
+            <div className={styles.options}>
               {PERIODS.map((option) => {
-                const isDisabled =
-                  source === "spotify" && !SPOTIFY_PERIODS.has(option.value);
+                const isDisabled = source === "spotify" && !SPOTIFY_PERIODS.has(option.value);
+                const isActive = period === option.value;
                 return (
                   <button
                     key={option.value}
@@ -234,26 +237,19 @@ export default function StoryPreview({
                       setPeriod(option.value);
                       setImageError(false);
                     }}
-                    className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                      period === option.value
-                        ? "border-transparent bg-gradient-to-r from-neon-pink to-neon-green text-black shadow-neon hover:brightness-110"
-                        : isDisabled
-                          ? "cursor-not-allowed border-border bg-transparent text-foreground/30"
-                          : "border-border bg-transparent text-foreground/70 hover:border-neon-pink/70"
-                    }`}
+                    className={optionButtonClass({ isActive, isDisabled })}
                   >
                     {option.label}
                   </button>
                 );
               })}
             </div>
+
             {period === "specific_year" ? (
-              <div className="space-y-2 pt-2">
-                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/50">
-                  Year
-                </label>
+              <div className={styles.field}>
+                <label className={styles.label}>Year</label>
                 <select
-                  value={selectedYear}
+                  value={resolvedSelectedYear}
                   onChange={(event) => {
                     setSelectedYear(Number(event.target.value));
                     setImageError(false);
@@ -275,54 +271,51 @@ export default function StoryPreview({
                     ))
                   )}
                 </select>
+
                 {source === "lastfm" && isLoadingAvailableYears ? (
-                  <p className="text-xs text-foreground/40">
-                    Loading available years from Last.fm...
-                  </p>
+                  <p className={styles.mutedText}>Loading available years from Last.fm...</p>
                 ) : source === "lastfm" && yearOptions.length === 0 ? (
-                  <p className="text-xs text-foreground/40">
+                  <p className={styles.mutedText}>
                     No scrobble years found for this Last.fm user.
                   </p>
                 ) : null}
               </div>
             ) : null}
           </div>
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground/60">
-              Template
-            </h2>
-            <div className="flex flex-col gap-2">
-              {TEMPLATES.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    setTemplate(option.value);
-                    setImageError(false);
-                  }}
-                  className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                    template === option.value
-                      ? "border-transparent bg-gradient-to-r from-neon-pink to-neon-green text-black shadow-neon hover:brightness-110"
-                      : "border-border bg-transparent text-foreground/70 hover:border-neon-pink/70"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+
+          <div className={styles.group}>
+            <h2 className={styles.groupTitle}>Template</h2>
+            <div className={styles.options}>
+              {TEMPLATES.map((option) => {
+                const isActive = template === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => {
+                      setTemplate(option.value);
+                      setImageError(false);
+                    }}
+                    className={optionButtonClass({ isActive, isDisabled: false })}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-black/40 shadow-soft">
-          <div className="aspect-9/16 w-full bg-background">
+      <div className={styles.preview}>
+        <div className={styles.previewCard}>
+          <div className={styles.previewFrame}>
             {!canGenerate ? (
-              <div className="flex h-full items-center justify-center text-sm text-foreground/60">
+              <div className={styles.previewMessage}>
                 Enter your Last.fm username to generate a story.
               </div>
             ) : imageError ? (
-              <div className="flex h-full items-center justify-center text-sm text-foreground/60">
+              <div className={styles.previewMessage}>
                 Unable to load story. Try another period.
               </div>
             ) : (
@@ -330,13 +323,14 @@ export default function StoryPreview({
                 key={imageUrl}
                 src={imageUrl}
                 alt="Story preview"
-                className="h-full w-full object-cover"
+                className={styles.previewImage}
                 onError={() => setImageError(true)}
               />
             )}
           </div>
         </div>
-        <div className="flex flex-wrap gap-3">
+
+        <div className={styles.actions}>
           {canGenerate ? (
             <a
               href={imageUrl}
@@ -346,14 +340,11 @@ export default function StoryPreview({
               Download Image
             </a>
           ) : (
-            <button
-              type="button"
-              disabled
-              className="btn-disabled"
-            >
+            <button type="button" disabled className="btn-disabled">
               Download Image
             </button>
           )}
+
           <button
             type="button"
             onClick={() => setImageError(false)}

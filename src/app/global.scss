@@ -1,0 +1,94 @@
+.app-container {
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.app-card {
+  border-radius: 1.5rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.app-input {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  background-color: rgb(from var(--color-background) r g b / 0.3);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-foreground);
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.app-input::placeholder {
+  color: rgb(from var(--color-foreground) r g b / 0.4);
+}
+
+.app-input:focus {
+  border-color: rgb(from var(--color-neon-green) r g b / 0.7);
+  box-shadow: 0 0 0 2px rgb(from var(--color-neon-pink) r g b / 0.2);
+}
+
+:where(.btn-primary, .btn-secondary, .btn-disabled) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-primary {
+  border: 0;
+  background-image: linear-gradient(to right, var(--color-neon-pink), var(--color-neon-green));
+  color: #000;
+  box-shadow: var(--shadow-neon);
+  transition: filter 150ms ease;
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--shadow-neon),
+    0 0 0 2px rgb(from var(--color-neon-green) r g b / 0.7),
+    0 0 0 4px var(--color-background);
+}
+
+.btn-secondary {
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: rgb(from var(--color-foreground) r g b / 0.8);
+  transition: border-color 150ms ease, color 150ms ease;
+}
+
+.btn-secondary:hover {
+  border-color: rgb(from var(--color-neon-pink) r g b / 0.7);
+  color: var(--color-foreground);
+}
+
+.btn-secondary:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgb(from var(--color-neon-pink) r g b / 0.6),
+    0 0 0 4px var(--color-background);
+}
+
+.btn-disabled {
+  cursor: not-allowed;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: rgb(from var(--color-foreground) r g b / 0.4);
+}
