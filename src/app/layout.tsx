@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: "Spotme",
   description: "Generate Instagram Stories from your Spotify stats.",
   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
   themeColor: "#0b0d12",
 };
 

@@ -1,0 +1,127 @@
+{
+  "info": {
+    "name": "Music App - Last.fm Debug",
+    "description": "Requests used by the app to fetch Last.fm data and images, plus helpers to inspect image URLs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "App: Story Image (Last.fm, grid)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "image/png"
+          }
+        ],
+        "url": "{{appBaseUrl}}/api/image/story?source=lastfm&username={{lastfmUsername}}&period=short_term&template=top-artists-grid"
+      }
+    },
+    {
+      "name": "App: Story Image (Last.fm, single)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "image/png"
+          }
+        ],
+        "url": "{{appBaseUrl}}/api/image/story?source=lastfm&username={{lastfmUsername}}&period=short_term&template=top-artist"
+      }
+    },
+    {
+      "name": "Last.fm: user.gettopartists",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const data = pm.response.json();",
+              "const artists = data && data.topartists && data.topartists.artist;",
+              "function pickImage(artist) {",
+              "  const images = Array.isArray(artist && artist.image) ? artist.image : [];",
+              "  const preferred = ['mega', 'extralarge', 'large', 'medium', 'small'];",
+              "  for (const size of preferred) {",
+              "    const match = images.find((img) => img.size === size && img['#text']);",
+              "    if (match) return match['#text'];",
+              "  }",
+              "  const any = images.find((img) => img['#text']);",
+              "  return any ? any['#text'] : '';",
+              "}",
+              "if (Array.isArray(artists) && artists.length > 0) {",
+              "  const url = pickImage(artists[0]);",
+              "  if (url) {",
+              "    pm.collectionVariables.set('lastfmImageUrl', url);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": "https://ws.audioscrobbler.com/2.0/?method=user.gettopartists&user={{lastfmUsername}}&period=1month&limit=50&autocorrect=1&api_key={{lastfmApiKey}}&format=json"
+      }
+    },
+    {
+      "name": "Last.fm: artist.getinfo (by MBID)",
+      "request": {
+        "method": "GET",
+        "url": "https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&mbid={{artistMbid}}&autocorrect=1&api_key={{lastfmApiKey}}&format=json"
+      }
+    },
+    {
+      "name": "Last.fm: artist.getinfo (by name)",
+      "request": {
+        "method": "GET",
+        "url": "https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist={{artistName}}&autocorrect=1&api_key={{lastfmApiKey}}&format=json"
+      }
+    },
+    {
+      "name": "Last.fm: Fetch image from lastfmImageUrl",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "image/jpeg,image/png,image/gif;q=0.9"
+          },
+          {
+            "key": "User-Agent",
+            "value": "Mozilla/5.0 (compatible; MusicStoriesBot/1.0; +http://127.0.0.1)"
+          }
+        ],
+        "url": "{{lastfmImageUrl}}"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "appBaseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "lastfmApiKey",
+      "value": ""
+    },
+    {
+      "key": "lastfmUsername",
+      "value": ""
+    },
+    {
+      "key": "artistName",
+      "value": ""
+    },
+    {
+      "key": "artistMbid",
+      "value": ""
+    },
+    {
+      "key": "lastfmImageUrl",
+      "value": ""
+    }
+  ]
+}

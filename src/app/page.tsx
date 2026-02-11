@@ -9,11 +9,11 @@ export default function HomePage() {
             Spotme
           </p>
           <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-            Turn your Spotify stats into Instagram-ready stories.
+            Turn your music stats into Instagram-ready stories.
           </h1>
           <p className="max-w-2xl text-lg text-white/70">
-            Pick a period, choose a template, and export a full-screen 1080x1920
-            story in seconds.
+            For now, we support Last.fm usernames only (Spotify sign-in is
+            temporarily disabled).
           </p>
         </div>
         <div className="flex flex-wrap gap-4">
@@ -21,7 +21,7 @@ export default function HomePage() {
             href="/login"
             className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:opacity-90"
           >
-            Connect Spotify
+            Continue with Last.fm
           </Link>
           <Link
             href="/stories"

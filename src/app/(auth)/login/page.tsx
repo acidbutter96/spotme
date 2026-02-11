@@ -1,11 +1,25 @@
-import { getServerSession } from "next-auth";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
 import LoginPanel from "@/components/auth/LoginPanel";
 
+const LASTFM_USERNAME_COOKIE = "lastfm_username";
+
+function decodeCookieValue(value: string) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 export default async function LoginPage() {
-  const session = await getServerSession(authOptions);
-  if (session) {
+  const cookieStore = await cookies();
+  const lastFmUsernameRaw = cookieStore.get(LASTFM_USERNAME_COOKIE)?.value;
+  const lastFmUsername = lastFmUsernameRaw
+    ? decodeCookieValue(lastFmUsernameRaw)
+    : "";
+
+  if (lastFmUsername) {
     redirect("/stories");
   }
 
@@ -16,13 +30,13 @@ export default async function LoginPage() {
           <p className="text-xs uppercase tracking-[0.4em] text-white/50">
             Authentication
           </p>
-          <h1 className="text-3xl font-semibold">Connect your Spotify</h1>
+          <h1 className="text-3xl font-semibold">Continue with Last.fm</h1>
           <p className="text-white/70">
-            We use your listening history to craft story-ready visuals. Your
-            tokens stay on the server and never touch local storage.
+            Spotify sign-in is temporarily disabled. Enter your Last.fm username
+            to generate stories from your public profile.
           </p>
         </div>
-        <LoginPanel />
+        <LoginPanel initialUsername={lastFmUsername} />
       </div>
     </main>
   );
