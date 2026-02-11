@@ -10,6 +10,7 @@
   border: 1px solid var(--color-border);
   background: var(--color-card);
   box-shadow: var(--shadow-soft);
+  backdrop-filter: saturate(160%) blur(20px);
 }
 
 .app-input {

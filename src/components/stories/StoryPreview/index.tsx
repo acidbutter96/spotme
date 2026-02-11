@@ -71,6 +71,7 @@ export default function StoryPreview({
     "top-artists-grid",
   );
   const [imageError, setImageError] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
   const [lastFmUsername, setLastFmUsername] = useState(initialLastFmUsername);
   const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
   const [availableYears, setAvailableYears] = useState<number[]>(
@@ -142,6 +143,14 @@ export default function StoryPreview({
     }
     return `/api/image/story?${params.toString()}`;
   }, [period, template, source, trimmedUsername, resolvedSelectedYear]);
+
+  useEffect(() => {
+    if (!canGenerate) {
+      setIsImageLoading(false);
+      return;
+    }
+    setIsImageLoading(true);
+  }, [imageUrl, canGenerate]);
 
   return (
     <section className={styles.root}>
@@ -319,13 +328,25 @@ export default function StoryPreview({
                 Unable to load story. Try another period.
               </div>
             ) : (
-              <img
-                key={imageUrl}
-                src={imageUrl}
-                alt="Story preview"
-                className={styles.previewImage}
-                onError={() => setImageError(true)}
-              />
+              <>
+                {isImageLoading ? (
+                  <div className={styles.previewLoading} aria-live="polite">
+                    <span className={styles.spinner} aria-hidden="true" />
+                    <span className={styles.loadingText}>Generating image…</span>
+                  </div>
+                ) : null}
+                <img
+                  key={imageUrl}
+                  src={imageUrl}
+                  alt="Story preview"
+                  className={styles.previewImage}
+                  onLoad={() => setIsImageLoading(false)}
+                  onError={() => {
+                    setIsImageLoading(false);
+                    setImageError(true);
+                  }}
+                />
+              </>
             )}
           </div>
         </div>

@@ -8,7 +8,7 @@
   --color-card: rgba(246, 247, 251, 0.06);
   --color-neon-pink: #ff3bd4;
   --color-neon-green: #39ff88;
-  --shadow-soft: 0 24px 70px rgba(0, 0, 0, 0.55);
+  --shadow-soft: 0 18px 40px rgb(from var(--color-background) r g b / 0.55);
   --shadow-neon: 0 0 18px rgba(255, 59, 212, 0.35),
     0 0 28px rgba(57, 255, 136, 0.22);
   --font-sans: var(--font-dm-sans), system-ui, -apple-system, sans-serif;
