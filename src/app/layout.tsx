@@ -1,14 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans } from "next/font/google";
+import { Roboto } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 import "./globals.css";
 
-const dmSans = DM_Sans({
+const roboto = Roboto({
+  weight: ["100", "300", "400", "500", "700", "900"],
+  style: ["normal"],
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-dm-sans",
+  display: "swap",
 });
+
+
 
 export const metadata: Metadata = {
   title: "Spotme",
@@ -29,8 +33,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={dmSans.variable}>
-      <body className="min-h-screen text-foreground antialiased">
+    <html lang="en">
+      <body className={`${roboto.className} min-h-screen text-foreground antialiased`}>
         <div className="flex min-h-screen flex-col">
           <header className="border-b border-border bg-background/20 backdrop-blur">
             <div className="app-container flex items-center justify-between py-5">
@@ -57,7 +61,8 @@ export default function RootLayout({
               </nav>
             </div>
           </header>
-          <div className="flex-1">{children}</div>
+          <div className="flex-1 relative pb-24">{children}</div>
+          <Footer />
         </div>
       </body>
     </html>
