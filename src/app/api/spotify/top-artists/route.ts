@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     try {
       artistsQueuedForMissingCover = await saveArtistsWithoutCover(
         items,
-        "spotify",
+        { source: "spotify" },
       );
     } catch (error) {
       console.error("Failed to sync artists without cover", error);

@@ -13,11 +13,16 @@ import { getWikidataArtistImage } from "@/lib/wikidata/client";
 import { getTopArtists, searchArtistImage } from "@/lib/spotify/client";
 import { normalizeArtist } from "@/lib/spotify/normalize";
 import { getTopArtist, getTopGenres } from "@/lib/stats/aggregations";
+import {
+  saveArtistsWithoutCover,
+  saveLastFmPeriodArtists,
+  upsertLastFmUser,
+} from "@/lib/mongo/service";
 import { renderTemplate } from "@/lib/image/templates";
 import type { NormalizedArtist, SpotifyTimeRange } from "@/types/spotify";
 import type { StoryTemplate } from "@/lib/image/templates";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 type StoryPeriod =
   | SpotifyTimeRange
@@ -86,18 +91,7 @@ function isLikelyLastFmImageHost(url: string): boolean {
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  const chunkSize = 0x8000;
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    const chunk = bytes.subarray(i, i + chunkSize);
-    let chunkString = "";
-    for (let j = 0; j < chunk.length; j += 1) {
-      chunkString += String.fromCharCode(chunk[j] ?? 0);
-    }
-    binary += chunkString;
-  }
-  return btoa(binary);
+  return Buffer.from(buffer).toString("base64");
 }
 
 async function inlineIfOgCompatibleLastFmImage(
@@ -226,6 +220,10 @@ export async function GET(req: NextRequest) {
     const yearParam = params.get("year");
     const parsedYear = Number(yearParam);
     const selectedYear = Number.isFinite(parsedYear) ? parsedYear : null;
+    const storagePeriod =
+      period === "specific_year" && selectedYear
+        ? `${period}:${selectedYear}`
+        : period;
     const logoUrl = new URL("/logo.svg", req.nextUrl.origin).toString();
 
     let normalizedArtists: NormalizedArtist[] = [];
@@ -318,6 +316,33 @@ export async function GET(req: NextRequest) {
           };
         }),
       );
+
+      try {
+        const lastFmUser = await upsertLastFmUser(username);
+
+        await saveLastFmPeriodArtists({
+          userId: lastFmUser._id,
+          username: lastFmUser.username,
+          period: storagePeriod,
+          artists: normalizedArtists.map((artist) => ({
+            artistId: artist.id,
+            name: artist.name,
+            imageUrl: artist.imageUrl,
+            popularity: artist.popularity,
+          })),
+        });
+
+        await saveArtistsWithoutCover(
+          normalizedArtists.slice(0, LASTFM_IMAGE_TILE_LIMIT),
+          {
+            source: "lastfm",
+            firstSeenByUserId: lastFmUser._id,
+            firstSeenByUsername: lastFmUser.username,
+          },
+        );
+      } catch (error) {
+        console.error("Failed to persist Last.fm usage data", error);
+      }
     } else {
       const accessToken = await getServerAccessToken(req);
       if (!accessToken) {

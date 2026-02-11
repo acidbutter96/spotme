@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   title: "Spotme",
   description: "Generate Instagram Stories from your Spotify stats.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.svg",
+  },
 };
 
 export const viewport: Viewport = {
