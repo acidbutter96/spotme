@@ -3,6 +3,7 @@ import { ArtistPlaceholder } from "@/lib/image/placeholders/artist";
 
 interface TopArtistTemplateProps {
   periodLabel: string;
+  logoUrl: string;
   topArtist: {
     name: string;
     imageUrl: string | null;
@@ -12,6 +13,7 @@ interface TopArtistTemplateProps {
 
 export function TopArtistTemplate({
   periodLabel,
+  logoUrl,
   topArtist,
   topGenres,
 }: TopArtistTemplateProps): ReactElement {
@@ -86,7 +88,7 @@ export function TopArtistTemplate({
                 style={{ objectFit: "cover" }}
               />
             ) : (
-              <ArtistPlaceholder />
+              <ArtistPlaceholder logoUrl={logoUrl} />
             )}
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -117,14 +119,40 @@ export function TopArtistTemplate({
           style={{
             display: "flex",
             justifyContent: "space-between",
+            alignItems: "center",
             padding: "32px 0 0",
             borderTop: "1px solid rgba(255,255,255,0.1)",
             fontSize: "26px",
             color: "rgba(255,255,255,0.6)",
           }}
         >
-          <span>Generated with Music Stories</span>
-          <span>1080x1920</span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                padding: "8px",
+                borderRadius: "18px",
+                backgroundColor: "rgba(57,255,136,0.12)",
+                boxShadow:
+                  "0 0 28px rgba(255,59,212,0.45), 0 0 12px rgba(57,255,136,0.35)",
+              }}
+            >
+              <img
+                src={logoUrl}
+                alt="Music Stories logo"
+                width={54}
+                height={54}
+                style={{ borderRadius: "12px" }}
+              />
+            </div>
+            <span>Generated with spotme.space</span>
+          </div>
         </div>
       </div>
     </div>

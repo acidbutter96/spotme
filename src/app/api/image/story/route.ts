@@ -19,24 +19,55 @@ import type { StoryTemplate } from "@/lib/image/templates";
 
 export const runtime = "edge";
 
-const ALLOWED_TIME_RANGES: SpotifyTimeRange[] = [
+type StoryPeriod =
+  | SpotifyTimeRange
+  | "week"
+  | "15days"
+  | "30days"
+  | "semester"
+  | "year"
+  | "last_year"
+  | "specific_year";
+
+const ALLOWED_PERIODS: StoryPeriod[] = [
+  "week",
+  "15days",
+  "30days",
   "short_term",
+  "semester",
   "medium_term",
+  "year",
+  "last_year",
+  "specific_year",
   "long_term",
 ];
 
-const PERIOD_LABELS: Record<SpotifyTimeRange, string> = {
+const PERIOD_LABELS: Record<StoryPeriod, string> = {
+  week: "This Week",
+  "15days": "Last 15 Days",
+  "30days": "Last 30 Days",
   short_term: "This Month",
+  semester: "Semester",
   medium_term: "Last 6 Months",
+  year: "This Year",
+  last_year: "Last Year",
+  specific_year: "Specific Year",
   long_term: "All Time",
 };
 
 const ALLOWED_TEMPLATES: StoryTemplate[] = ["top-artist", "top-artists-grid"];
 const ALLOWED_SOURCES = ["spotify", "lastfm"] as const;
 
-const LASTFM_PERIODS: Record<SpotifyTimeRange, LastFmPeriod> = {
+const LASTFM_PERIODS: Record<StoryPeriod, LastFmPeriod> = {
+  week: "7day",
+  "15days": "1month",
+  "30days": "1month",
   short_term: "1month",
+  semester: "6month",
   medium_term: "6month",
+  year: "12month",
+  last_year: "12month",
+  specific_year: "overall",
   long_term: "overall",
 };
 
@@ -134,11 +165,34 @@ async function inlineIfOgCompatibleLastFmImage(
   }
 }
 
-function isSpotifyTimeRange(value: string | null): value is SpotifyTimeRange {
+function isStoryPeriod(value: string | null): value is StoryPeriod {
   return (
-    value !== null &&
-    (ALLOWED_TIME_RANGES as readonly string[]).includes(value)
+    value !== null && (ALLOWED_PERIODS as readonly string[]).includes(value)
   );
+}
+
+function toSpotifyTimeRange(period: StoryPeriod): SpotifyTimeRange {
+  switch (period) {
+    case "short_term":
+    case "medium_term":
+    case "long_term":
+      return period;
+    case "semester":
+      return "medium_term";
+    case "year":
+    case "last_year":
+    case "specific_year":
+      return "long_term";
+    default:
+      return "short_term";
+  }
+}
+
+function getPeriodLabel(period: StoryPeriod, year?: number | null): string {
+  if (period === "specific_year" && year) {
+    return `Year ${year}`;
+  }
+  return PERIOD_LABELS[period];
 }
 
 function isStoryTemplate(value: string | null): value is StoryTemplate {
@@ -162,13 +216,17 @@ export async function GET(req: NextRequest) {
     const templateParam = params.get("template");
     const sourceParam = params.get("source");
 
-    const period: SpotifyTimeRange = isSpotifyTimeRange(periodParam)
+    const period: StoryPeriod = isStoryPeriod(periodParam)
       ? periodParam
       : "short_term";
     const template: StoryTemplate = isStoryTemplate(templateParam)
       ? templateParam
       : "top-artists-grid";
     const source = isSource(sourceParam) ? sourceParam : "spotify";
+    const yearParam = params.get("year");
+    const parsedYear = Number(yearParam);
+    const selectedYear = Number.isFinite(parsedYear) ? parsedYear : null;
+    const logoUrl = new URL("/logo.svg", req.nextUrl.origin).toString();
 
     let normalizedArtists: NormalizedArtist[] = [];
     let topGenres: Array<{ genre: string; count: number }> = [];
@@ -266,7 +324,8 @@ export async function GET(req: NextRequest) {
         return new Response("Unauthorized", { status: 401 });
       }
 
-      const topArtists = await getTopArtists(period, accessToken);
+      const spotifyPeriod = toSpotifyTimeRange(period);
+      const topArtists = await getTopArtists(spotifyPeriod, accessToken);
       normalizedArtists = topArtists.items.map(normalizeArtist);
       topGenres = getTopGenres(normalizedArtists);
     }
@@ -274,7 +333,8 @@ export async function GET(req: NextRequest) {
     const topArtist = getTopArtist(normalizedArtists);
 
     const image = renderTemplate(template, {
-      periodLabel: PERIOD_LABELS[period],
+      periodLabel: getPeriodLabel(period, selectedYear),
+      logoUrl,
       topArtist: topArtist
         ? { name: topArtist.name, imageUrl: topArtist.imageUrl }
         : null,

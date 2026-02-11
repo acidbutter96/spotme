@@ -3,8 +3,15 @@
 import { useMemo, useState } from "react";
 
 const PERIODS = [
+  { value: "week", label: "This week" },
+  { value: "15days", label: "Last 15 days" },
+  { value: "30days", label: "Last 30 days" },
   { value: "short_term", label: "This month" },
+  { value: "semester", label: "Semester" },
   { value: "medium_term", label: "Last 6 months" },
+  { value: "year", label: "This year" },
+  { value: "last_year", label: "Last year" },
+  { value: "specific_year", label: "Specific year" },
   { value: "long_term", label: "All time" },
 ] as const;
 
@@ -17,6 +24,12 @@ const SOURCES = [
   { value: "spotify", label: "Spotify" },
   { value: "lastfm", label: "Last.fm" },
 ] as const;
+
+const SPOTIFY_PERIODS = new Set(["short_term", "medium_term", "long_term"]);
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = Array.from({ length: 20 }, (_, index) =>
+  CURRENT_YEAR - index,
+);
 
 type Source = (typeof SOURCES)[number]["value"];
 
@@ -41,6 +54,7 @@ export default function StoryPreview({
   >("top-artists-grid");
   const [imageError, setImageError] = useState(false);
   const [lastFmUsername, setLastFmUsername] = useState(initialLastFmUsername);
+  const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
 
   const trimmedUsername = lastFmUsername.trim();
   const canGenerate = source !== "lastfm" || trimmedUsername.length > 0;
@@ -54,8 +68,11 @@ export default function StoryPreview({
     if (source === "lastfm" && trimmedUsername) {
       params.set("username", trimmedUsername);
     }
+    if (period === "specific_year") {
+      params.set("year", String(selectedYear));
+    }
     return `/api/image/story?${params.toString()}`;
-  }, [period, template, source, trimmedUsername]);
+  }, [period, template, source, trimmedUsername, selectedYear]);
 
   return (
     <section className="grid gap-8 lg:grid-cols-[320px_1fr]">
@@ -76,6 +93,12 @@ export default function StoryPreview({
                       if (isDisabled) {
                         return;
                       }
+                      if (
+                        option.value === "spotify" &&
+                        !SPOTIFY_PERIODS.has(period)
+                      ) {
+                        setPeriod("short_term");
+                      }
                       setSource(option.value);
                       setImageError(false);
                     }}
@@ -88,7 +111,17 @@ export default function StoryPreview({
                           : "border-border bg-transparent text-foreground/70 hover:border-neon-pink/70"
                     }`}
                   >
-                    {option.label}
+                    <span className="inline-flex items-center gap-2">
+                      {option.value === "lastfm" ? (
+                        <img
+                          src="/icons/last-fm.svg"
+                          alt=""
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                        />
+                      ) : null}
+                      <span>{option.label}</span>
+                    </span>
                   </button>
                 );
               })}
@@ -124,24 +157,55 @@ export default function StoryPreview({
               Period
             </h2>
             <div className="flex flex-col gap-2">
-              {PERIODS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    setPeriod(option.value);
+              {PERIODS.map((option) => {
+                const isDisabled =
+                  source === "spotify" && !SPOTIFY_PERIODS.has(option.value);
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    disabled={isDisabled}
+                    onClick={() => {
+                      if (isDisabled) {
+                        return;
+                      }
+                      setPeriod(option.value);
+                      setImageError(false);
+                    }}
+                    className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
+                      period === option.value
+                        ? "border-transparent bg-gradient-to-r from-neon-pink to-neon-green text-black shadow-neon hover:brightness-110"
+                        : isDisabled
+                          ? "cursor-not-allowed border-border bg-transparent text-foreground/30"
+                          : "border-border bg-transparent text-foreground/70 hover:border-neon-pink/70"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            {period === "specific_year" ? (
+              <div className="space-y-2 pt-2">
+                <label className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground/50">
+                  Year
+                </label>
+                <select
+                  value={selectedYear}
+                  onChange={(event) => {
+                    setSelectedYear(Number(event.target.value));
                     setImageError(false);
                   }}
-                  className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
-                    period === option.value
-                      ? "border-transparent bg-gradient-to-r from-neon-pink to-neon-green text-black shadow-neon hover:brightness-110"
-                      : "border-border bg-transparent text-foreground/70 hover:border-neon-pink/70"
-                  }`}
+                  className="app-input"
                 >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+                  {YEAR_OPTIONS.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
           </div>
           <div className="space-y-2">
             <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-foreground/60">

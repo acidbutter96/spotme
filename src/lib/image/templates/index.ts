@@ -6,6 +6,7 @@ export type StoryTemplate = "top-artist" | "top-artists-grid";
 
 export interface StoryTemplateData {
   periodLabel: string;
+  logoUrl: string;
   topArtist: {
     name: string;
     imageUrl: string | null;

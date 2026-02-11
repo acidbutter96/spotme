@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getServerAccessToken } from "@/lib/auth";
 import { getTopArtists } from "@/lib/spotify/client";
 import { normalizeArtist } from "@/lib/spotify/normalize";
+import { saveArtistsWithoutCover } from "@/lib/mongo/service";
 import type { SpotifyTimeRange } from "@/types/spotify";
 
 const ALLOWED_TIME_RANGES: SpotifyTimeRange[] = [
@@ -33,7 +34,17 @@ export async function GET(req: NextRequest) {
     const data = await getTopArtists(period, accessToken);
     const items = data.items.map(normalizeArtist);
 
-    return NextResponse.json({ items });
+    let artistsQueuedForMissingCover = 0;
+    try {
+      artistsQueuedForMissingCover = await saveArtistsWithoutCover(
+        items,
+        "spotify",
+      );
+    } catch (error) {
+      console.error("Failed to sync artists without cover", error);
+    }
+
+    return NextResponse.json({ items, artistsQueuedForMissingCover });
   } catch (error) {
     console.error(error);
     return NextResponse.json(
