@@ -1,27 +1,23 @@
 .container {
-  position: absolute;
-  margin-top: 20rem !important;
-  bottom: 0;
-  right: 0;
-  height: 5rem;
   width: 100%;
   display: flex;
-  flex-direction: row-reverse;
+  justify-content: flex-end;
   align-items: center;
-  padding: 0 1rem;
+  padding: 1rem;
 
   .textRow {
-    height: 4rem;
     display: flex;
     align-items: center;
     position: relative;
+    gap: 0.5rem;
+    color: rgb(from var(--color-foreground) r g b / 0.6);
+    font-size: 0.875rem;
 
     a {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      height: 100%;
       text-decoration: none;
       cursor: pointer;
 
@@ -30,7 +26,6 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        height: 100%;
 
         img {
           width: 100%;
