@@ -4,6 +4,8 @@
   justify-content: flex-end;
   align-items: center;
   padding: 1rem;
+  position: relative;
+  z-index: 1;
 
   .textRow {
     display: flex;

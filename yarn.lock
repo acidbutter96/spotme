@@ -803,6 +803,10 @@
     "@babel/helper-string-parser" "^7.27.1"
     "@babel/helper-validator-identifier" "^7.28.5"
 
+"@devbutter/paint-background@https://github.com/acidbutter96/paint-background.git#v1.0.2":
+  version "1.0.2"
+  resolved "https://github.com/acidbutter96/paint-background.git#12a2bc643ac27d6d58bb16f476607d6f8e221858"
+
 "@emnapi/core@^1.4.3", "@emnapi/core@^1.7.1":
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/@emnapi/core/-/core-1.8.1.tgz#fd9efe721a616288345ffee17a1f26ac5dd01349"

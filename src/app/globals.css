@@ -26,21 +26,7 @@
 
   body {
     background-color: var(--color-background);
-    background-image: radial-gradient(
-        900px circle at 15% 10%,
-        rgba(255, 59, 212, 0.18),
-        transparent 55%
-      ),
-      radial-gradient(
-        700px circle at 85% 15%,
-        rgba(57, 255, 136, 0.14),
-        transparent 55%
-      ),
-      radial-gradient(
-        900px circle at 55% 120%,
-        rgba(255, 59, 212, 0.1),
-        transparent 60%
-      );
+    background-image: none;
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }

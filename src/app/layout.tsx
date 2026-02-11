@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Roboto } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
+import BackgroundClient from "@/components/BackgroundClient";
 import Footer from "@/components/Footer";
 import "./globals.css";
 import "./global.scss";
@@ -38,6 +39,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${roboto.className} ${styles.body}`}>
         <div className={styles.shell}>
+          <BackgroundClient />
           <header className={styles.header}>
             <div className={`app-container ${styles.headerInner}`}>
               <Link href="/" className={styles.brand}>
