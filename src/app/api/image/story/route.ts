@@ -366,11 +366,16 @@ export async function GET(req: NextRequest) {
       }
 
       if (!usedDateRangeFetch) {
-        const topArtists = await getLastFmTopArtists(
-          username,
-          LASTFM_PERIODS[period],
-        );
-        rawArtists = topArtists.topartists.artist;
+        try {
+          const topArtists = await getLastFmTopArtists(
+            username,
+            LASTFM_PERIODS[period],
+          );
+          rawArtists = topArtists.topartists.artist;
+        } catch (error) {
+          console.error("Last.fm period top artists lookup failed", error);
+          rawArtists = [];
+        }
       }
 
       normalizedArtists = await Promise.all(
